@@ -82,14 +82,14 @@ def train(
 
             del loss, logits, image, target, data, batch_idx
         print(
-            f"Epoch {epoch} training losses: "
-            + "\t".join((f"{k}: {i.val}" for k, i in loss_avgs.items()))
+            f"Epoch {epoch} | Training losses: \t"
+            + "\t".join((f"{k}: {i.val:.3}" for k, i in loss_avgs.items()))
         )
 
         if epoch % checkpoint_interval == 0:
             save_model(model, epoch, exp_dir)
 
-    metrics = evaluate(model)
+    metrics = evaluate(model, val_loader, loss_weights, device)
     if metrics["MSE"] < best_mse:
         best_mse = metrics["MSE"]
         save_model(model, epoch, exp_dir, is_best=True)
@@ -108,7 +108,7 @@ def save_model(
     suffix = "_best" if is_best else f"{epoch}_final" if is_final else f"{epoch}"
     checkpoint_path = os.path.join(exp_dir, f"checkpoint_{suffix}.pth")
     torch.save(model.state_dict(), checkpoint_path)
-    print(f"Epoch {epoch} | Training checkpoint saved at {checkpoint_path}")
+    print(f"Epoch {epoch} | Checkpoint saved at {checkpoint_path}")
 
 
 def compute_losses(
@@ -158,11 +158,11 @@ def evaluate(model, data_loader, loss_weights, device, model_ckpt_path=None):
 
     mses = {k: mse.item() / len(data_loader) for k, mse in mses.items()}
 
-    metrics = {f"MSE_{k}": mse for k, mse in mses.items()}
+    metrics = {f"{k}": mse for k, mse in mses.items()}
     metrics["MSE"] = sum([loss_weights[k] * v for k, v in mses.items()])
     print(
-        "Evaluation losses:"
-        + "\t".join((f"{k}: {metric}" for k, metric in metrics.items()))
+        "Evaluation losses: \t"
+        + "\t".join((f"{k}: {metric:.3}" for k, metric in metrics.items()))
     )
 
     return metrics
