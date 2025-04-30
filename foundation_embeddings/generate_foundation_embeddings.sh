@@ -15,5 +15,5 @@ python3 embed_croma.py ${downstream_data_dir}/data_eval/ ${data_dir}/croma-eval-
 python3 embed_prithvi.py ${downstream_data_dir}/data_dev/ ${data_dir}/prithvi2/prithvi2_1x1536_dev.npz
 python3 embed_prithvi.py ${downstream_data_dir}/data_eval/ ${data_dir}/prithvi2/prithvi2_1x1536_eval.npz
 
-python3 embed_scale_mae.py ${downstream_data_dir}/data_dev/ ${data_dir}/scalemae_temporal_data_dev_4x1536.npz
-python3 embed_scale_mae.py ${downstream_data_dir}/data_eval/ ${data_dir}/scalemae_temporal_data_eval_4x1536.npz
+python3 embed_scale_mae.py ${downstream_data_dir}/data_dev/ ${data_dir}/scalemae/scalemae_temporal_data_dev_4x1536.npz
+python3 embed_scale_mae.py ${downstream_data_dir}/data_eval/ ${data_dir}/scalemae/scalemae_temporal_data_eval_4x1536.npz
