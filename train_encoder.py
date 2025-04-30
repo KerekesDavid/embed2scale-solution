@@ -5,8 +5,9 @@ import time
 
 import numpy as np
 import torch
-from tqdm import tqdm
+import wandb
 from torch.nn import functional as F
+from tqdm import tqdm
 
 from decoder import LinearDecoder
 from embedding_datasets import (
@@ -50,12 +51,14 @@ def train(
     loss_avgs = {k: ExpAvg() for k in loss_weights.keys()}
     loss_avgs["MSE"] = ExpAvg()
 
-    for epoch in range(0, epochs):
+    for epoch in tqdm(range(epochs), desc="Training", smoothing=0):
         if epoch % eval_interval == 0:
             metrics = evaluate(model, val_loader, loss_weights, device)
             if metrics["MSE"] < best_mse:
                 best_mse = metrics["MSE"]
                 save_model(model, epoch, exp_dir, is_best=True)
+        if epoch % checkpoint_interval == 0:
+            save_model(model, epoch, exp_dir)
 
         # Train for one epoch
         model.train()
@@ -81,19 +84,15 @@ def train(
             lr_scheduler.step()
 
             del loss, logits, image, target, data, batch_idx
-        print(
+        tqdm.write(
             f"Epoch {epoch} | Training losses: \t"
-            + "\t".join((f"{k}: {i.val:.3}" for k, i in loss_avgs.items()))
+            + "  ".join((f"{k}: {i.val:8.3g}" for k, i in loss_avgs.items()))
         )
-
-        if epoch % checkpoint_interval == 0:
-            save_model(model, epoch, exp_dir)
 
     metrics = evaluate(model, val_loader, loss_weights, device)
     if metrics["MSE"] < best_mse:
         best_mse = metrics["MSE"]
         save_model(model, epoch, exp_dir, is_best=True)
-
     # save last model
     save_model(epochs, is_final=True)
 
@@ -108,7 +107,7 @@ def save_model(
     suffix = "_best" if is_best else f"{epoch}_final" if is_final else f"{epoch}"
     checkpoint_path = os.path.join(exp_dir, f"checkpoint_{suffix}.pth")
     torch.save(model.state_dict(), checkpoint_path)
-    print(f"Epoch {epoch} | Checkpoint saved at {checkpoint_path}")
+    tqdm.write(f"Epoch {epoch} | Checkpoint saved at {checkpoint_path}")
 
 
 def compute_losses(
@@ -137,13 +136,13 @@ def evaluate(model, data_loader, loss_weights, device, model_ckpt_path=None):
         model_dict = torch.load(model_ckpt_path, map_location=device)
         model.load_state_dict(model_dict)
 
-        print(f"Loaded model from {model_ckpt_path} for evaluation")
+        tqdm.write(f"Loaded model from {model_ckpt_path} for evaluation")
 
     model.eval()
 
     mses = {}
 
-    for batch_idx, data in enumerate(tqdm(data_loader, desc="Evaluating")):
+    for data in tqdm(data_loader, desc="Evaluating"):
         image, target = data["image"], data["target"]
         image = {k: v.to(device) for k, v in image.items()}
         target = {k: v.to(device) for k, v in target.items()}
@@ -160,9 +159,9 @@ def evaluate(model, data_loader, loss_weights, device, model_ckpt_path=None):
 
     metrics = {f"{k}": mse for k, mse in mses.items()}
     metrics["MSE"] = sum([loss_weights[k] * v for k, v in mses.items()])
-    print(
+    tqdm.write(
         "Evaluation losses: \t"
-        + "\t".join((f"{k}: {metric:.3}" for k, metric in metrics.items()))
+        + "  ".join((f"{k}: {metric:8.3g}" for k, metric in metrics.items()))
     )
 
     return metrics
@@ -218,7 +217,7 @@ def main() -> None:
     num_workers = 8
     val_num_workers = 8
     data_directory = pathlib.Path("/geoinfo_proj/Shared/embed2scale-embeddings")
-    experiment_dir_prefix = "experiments/linear_embed_cdfpy"
+    experiment_dir_prefix = "experiments"
 
     lr = 1e-4
     loss_weights = {
@@ -231,12 +230,27 @@ def main() -> None:
     n_epochs = 160
     lr_milestones = [0.6, 0.9]
 
-    experiment_directory = pathlib.Path(
-        experiment_dir_prefix
+    experiment_name = (
+        "linear_embed_cdfpy"
         + f"_{lr}_{n_epochs}_"
         + time.strftime("%Y%m%d_%H%M%S", time.localtime())
     )
+    experiment_directory = pathlib.Path(experiment_dir_prefix) / experiment_name
     experiment_directory.mkdir(exist_ok=True)
+
+    wandb.init(
+        project="embed2scale",
+        name=experiment_name,
+        resume="allow",
+        config={
+            "seed": seed,
+            "lr": lr,
+            "loss_weights": loss_weights,
+            "n_epochs": n_epochs,
+            "lr_milestones": lr_milestones,
+            "batch_size": batch_size,
+        },
+    )
 
     fix_seeds(seed)
 
@@ -357,6 +371,8 @@ def main() -> None:
         loss_weights=loss_weights,
         device=device,
     )
+
+    wandb.finish()
 
 
 # def extract():
