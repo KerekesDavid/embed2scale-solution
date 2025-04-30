@@ -19,6 +19,7 @@ Install dependencies:
 
 ```
 mamba env create --file environment.yaml
+mamba activate embed2scale-solution
 ```
 
 Download the foundation models under `foundation_embeddings/pretrained_models`:
