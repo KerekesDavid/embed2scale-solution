@@ -241,7 +241,7 @@ def main() -> None:
     fix_seeds(seed)
 
     if torch.cuda.is_available():
-        device = torch.device("cuda")
+        device = torch.device("cuda", 0)
         torch.cuda.set_device(device)
     else:
         device = torch.device("cpu")
@@ -293,7 +293,7 @@ def main() -> None:
                 dataset_key="dofa",
             ),
             EmbeddingDataset(
-                root_paths={"croma": data_directory / "data/croma-dev-embeddings"}
+                root_paths={"croma": data_directory / "croma-dev-embeddings"}
             ),
             SingleFileEmbeddingDataset(
                 path=data_directory / "prithvi2/prithvi2_1x1536_dev.npz",
