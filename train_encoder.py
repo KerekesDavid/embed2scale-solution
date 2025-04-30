@@ -48,10 +48,10 @@ def train(
 ) -> None:
     loss_weights = {k: torch.tensor(v, device=device) for k, v in loss_weights.items()}
     best_mse = float("inf")
-    loss_avgs = {k: ExpAvg() for k in loss_weights.keys()}
-    loss_avgs["MSE"] = ExpAvg()
 
     for epoch in tqdm(range(epochs), desc="Training", smoothing=0):
+        loss_sums = {k: 0.0 for k in loss_weights.keys()}
+        loss_sums["MSE"] = 0.0
         if epoch % eval_interval == 0:
             metrics = evaluate(model, val_loader, loss_weights, device)
             if metrics["MSE"] < best_mse:
@@ -69,8 +69,8 @@ def train(
 
             logits = model(image)
             loss, loss_items = compute_losses(logits, target, loss_weights, device)
-            for k, avg in loss_avgs.items():
-                avg.update(loss_items[k])
+            for k in loss_sums.keys():
+                loss_sums[k] += loss_items[k]
 
             optimizer.zero_grad()
 
@@ -86,8 +86,12 @@ def train(
             del loss, logits, image, target, data, batch_idx
         tqdm.write(
             f"Epoch {epoch} | Training losses: \t"
-            + "  ".join((f"{k}: {i.val:8.3g}" for k, i in loss_avgs.items()))
+            + "  ".join(
+                (f"{k}: {i/len(dataloader):8.3g}" for k, i in loss_sums.items())
+            )
         )
+        wandb.log({k: v / len(dataloader) for k, v in loss_sums.items()}, commit=False)
+        wandb.log({"epoch": epoch, "learning_rate": optimizer.param_groups[0]["lr"]})
 
     metrics = evaluate(model, val_loader, loss_weights, device)
     if metrics["MSE"] < best_mse:
@@ -159,6 +163,7 @@ def evaluate(model, data_loader, loss_weights, device, model_ckpt_path=None):
 
     metrics = {f"{k}": mse for k, mse in mses.items()}
     metrics["MSE"] = sum([loss_weights[k] * v for k, v in mses.items()])
+    wandb.log({"eval_" + k: v for k, v in metrics.items()}, commit=False)
     tqdm.write(
         "Evaluation losses: \t"
         + "  ".join((f"{k}: {metric:8.3g}" for k, metric in metrics.items()))
