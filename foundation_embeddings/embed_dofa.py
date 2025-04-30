@@ -64,7 +64,7 @@ if __name__ == "__main__":
     path_to_data = sys.argv[1]
     output_file = sys.argv[2]
 
-    os.mkdir(os.path.dirname(output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     n_samples_to_process = None
 
     print(f"Using data path: {path_to_data}")

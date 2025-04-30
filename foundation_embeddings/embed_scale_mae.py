@@ -43,7 +43,7 @@ if __name__ == "__main__":
     output_file = sys.argv[2]
 
     # Script Parameters
-    os.mkdir(os.path.dirname(output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     save_temporal_embeddings = True
     print(f"Using data path: {path_to_data}")
     print(f"Temporal embeddings will be saved to (if enabled): {output_file}")
@@ -184,4 +184,3 @@ if __name__ == "__main__":
             failed_files=np.array(failed_files_gen, dtype=object),
         )  # Use object array for strings
         print("Temporal embeddings saved in", output_file)
-

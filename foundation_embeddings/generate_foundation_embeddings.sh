@@ -1,8 +1,5 @@
 #!/bin/bash
 
-mamba init
-mamba activate embed2scale-solution
-
 data_dir=../data
 downstream_data_dir=${data_dir}/SSL4EO-S12-downstream
 
@@ -20,5 +17,3 @@ python3 embed_prithvi.py ${downstream_data_dir}/data_eval/ ${data_dir}/prithvi2/
 
 python3 embed_scale_mae.py ${downstream_data_dir}/data_dev/ ${data_dir}/scalemae_temporal_data_dev_4x1536.npz
 python3 embed_scale_mae.py ${downstream_data_dir}/data_eval/ ${data_dir}/scalemae_temporal_data_eval_4x1536.npz
-
-conda deactivate
