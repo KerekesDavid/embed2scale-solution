@@ -1,6 +1,7 @@
 #!/bin/bash
 
-conda activate embed2scale_solution
+mamba init
+mamba activate embed2scale-solution
 
 data_dir=../data
 downstream_data_dir=${data_dir}/SSL4EO-S12-downstream

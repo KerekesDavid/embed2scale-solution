@@ -40,7 +40,9 @@ if __name__ == "__main__":
     # --- Copernicus-FM Model Loading ---
     print("Loading Copernicus-FM model...")
     # Path relative to where the script is run (assuming setup instructions followed)
-    copernicus_weights_path = "./weights/CopernicusFM_ViT_base_varlang_e100.pth"
+    copernicus_weights_path = (
+        "./pretrained_models/CopernicusFM_ViT_base_varlang_e100.pth"
+    )
     if not os.path.exists(copernicus_weights_path):
         print(f"Copernicus-FM weights not found at '{copernicus_weights_path}'")
         print("Ensure you ran the wget command from the setup instructions.")
