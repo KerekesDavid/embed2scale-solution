@@ -98,7 +98,7 @@ class SingleFileEmbeddingDataset(Dataset):
 
         data_dict = np.load(self.path, allow_pickle=True)
         self.data = data_dict["embeddings"].item()
-        assert not data_dict["failed_files"]
+        assert not len(data_dict["failed_files"])
         self.idx_to_id = sorted(list(self.data.keys()))
 
     def __len__(self):
