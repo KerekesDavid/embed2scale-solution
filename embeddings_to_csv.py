@@ -1,13 +1,11 @@
-import numpy as np
-import sklearn.decomposition
 import pathlib
-import pandas as pd
-import torch
 import sys
 
+import pandas as pd
+import torch
 from tqdm import tqdm
 
-from pangaea.datasets.e2s_embeddings import EmbeddingDataset
+from embedding_datasets import EmbeddingDataset
 
 
 def create_submission_from_dict(emb_dict):
@@ -31,8 +29,6 @@ def main():
     output_path.parent.mkdir(exist_ok=True)
 
     dataset = EmbeddingDataset(
-        bands={"linear": []},
-        dataset_name="EmbeddingDataset",
         root_paths=model_paths,
         as_tensor=False,
     )

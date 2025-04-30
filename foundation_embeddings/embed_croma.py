@@ -1,45 +1,42 @@
+import pathlib
+import sys
+
+import numpy as np
 import torch
-from challenge_dataset import E2SChallengeDataset
-from challenge_dataset import collate_fn
+from torchvision import transforms
+from tqdm import tqdm
+
 from challenge_dataset import (
-    S1GRD_MEAN_SSL4EO,
-    S2L2A_MEAN_SSL4EO,
-    S1GRD_STD_SSL4EO,
-    S2L2A_STD_SSL4EO,
-    S2L2A_MEAN,
-    S2L2A_STD,
     S1GRD_MEAN,
     S1GRD_STD,
+    S2L2A_MEAN,
+    S2L2A_STD,
+    E2SChallengeDataset,
+    collate_fn,
 )
 from use_croma import PretrainedCROMA
-from torchvision import transforms
-import numpy as np
-from pathlib import Path
-from tqdm import tqdm
 
 
 def main():
+    data_path = pathlib.Path(sys.argv[1])
+    embeddings_path = pathlib.Path(sys.argv[2])
+
+    assert data_path.exists()
+    assert embeddings_path.parent.exists()
+
     mean_data = S2L2A_MEAN + S1GRD_MEAN
     std_data = S2L2A_STD + S1GRD_STD
 
     data_transform = transforms.Compose(
-        [
-            # Add additional transformation here
-            transforms.Normalize(mean=mean_data, std=std_data)
-        ]
+        [transforms.Normalize(mean=mean_data, std=std_data)]
     )
 
-    embeddings_path = Path("./work-dir/croma-eval-embeddings/")
-    # path_to_data = (
-    #     "/home/david/KTH/embed2scale-pangaea/data/SSL4EO-S12-downstream/data_dev"
-    # )
-    path_to_data = "/geoinfo_proj/Shared/SSL4EO-S12-downstream/data_eval"
     modalities = ["s2l2a", "s1"]
 
     embeddings_path.mkdir(exist_ok=True)
 
     dataset_e2s = E2SChallengeDataset(
-        path_to_data,
+        data_path,
         modalities=modalities,
         dataset_name="bands",
         transform=data_transform,
@@ -48,8 +45,13 @@ def main():
         shift_s2_channels=False,
     )
 
-    device = "cuda:0"  # use a GPU
-    # device = "cpu"
+    if torch.cuda.is_available():
+        device = torch.device("cuda", 0)
+        torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
+        torch.cpu.set_device(device)
+
     model = PretrainedCROMA(
         pretrained_path="./pretrained_models/CROMA_large.pt",
         size="large",
