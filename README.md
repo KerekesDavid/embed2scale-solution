@@ -1,4 +1,6 @@
-# One of the two winning solutions of the Embed2Scale challenge
+# A winning solution to the Embed2Scale challenge
+
+This solution achieved the highest q-mean value of 15.22 on the [evaluation leaderboard](https://eval.ai/web/challenges/challenge-page/2465/leaderboard/6117) of the [Embed2Scale](https://eval.ai/web/challenges/challenge-page/2465/overview) challenge.
 
 ## Usage
 
@@ -52,7 +54,6 @@ Train the autoencoder to generate the evaluation embeddings:
 
 ```
 python3 train_encoder.py
-
 ```
 
 Point `embeddings_to_csv.py` to the newly generated experiment folder to generate a submission file:
