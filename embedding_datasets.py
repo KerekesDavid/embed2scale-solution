@@ -24,6 +24,10 @@ class EmbeddingDataset(Dataset):
             m: sorted(glob.glob(os.path.join(p, "embeddings", "*.npz")))
             for m, p in self.root_paths.items()
         }
+        for m, p in sample_list_per_model.items():
+            assert len(
+                p
+            ), f"Can't find embedding files in the directory {p} for key {m}"
 
         self.models = sorted(root_paths.keys())
 
