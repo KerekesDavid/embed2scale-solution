@@ -22,7 +22,7 @@ def main():
     embeddings_path = pathlib.Path(sys.argv[2])
 
     assert data_path.exists()
-    assert embeddings_path.parent.exists()
+    assert embeddings_path.parent.parent.exists()
 
     mean_data = S2L2A_MEAN + S1GRD_MEAN
     std_data = S2L2A_STD + S1GRD_STD
@@ -33,7 +33,7 @@ def main():
 
     modalities = ["s2l2a", "s1"]
 
-    embeddings_path.mkdir(exist_ok=True)
+    embeddings_path.mkdir(exist_ok=True, parents=True)
 
     dataset_e2s = E2SChallengeDataset(
         data_path,
