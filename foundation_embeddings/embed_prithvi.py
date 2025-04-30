@@ -100,8 +100,6 @@ if __name__ == "__main__":
     for idx in tqdm(
         indices_to_process, desc="Processing samples for temporal embeddings"
     ):
-        if idx > 10:
-            break
         try:
             data_file_name = dataset_e2s[idx]
             data_dict = data_file_name["data"]
