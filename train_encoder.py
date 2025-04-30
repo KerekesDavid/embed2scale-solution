@@ -245,7 +245,7 @@ def main() -> None:
     val_batch_size = 8
     num_workers = 8
     val_num_workers = 8
-    data_directory = pathlib.Path("/geoinfo_proj/Shared/embed2scale-embeddings")
+    data_directory = pathlib.Path("./data/")
     experiment_dir_prefix = "experiments"
 
     lr = 1e-4
