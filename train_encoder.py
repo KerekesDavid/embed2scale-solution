@@ -18,21 +18,6 @@ from embedding_datasets import (
 from encoder import FFNEncoder
 
 
-class ExpAvg:
-    def __init__(self, r=0.9):
-        self.r = r
-        self.val = None
-
-    def reset(self):
-        self.val = None
-
-    def update(self, val):
-        if self.val:
-            self.val = self.val * self.r + val * (1.0 - self.r)
-        else:
-            self.val = val
-
-
 def train(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
@@ -90,7 +75,10 @@ def train(
                 (f"{k}: {i/len(dataloader):8.3g}" for k, i in loss_sums.items())
             )
         )
-        wandb.log({k: v / len(dataloader) for k, v in loss_sums.items()}, commit=False)
+        wandb.log(
+            {"train_loss_" + k: v / len(dataloader) for k, v in loss_sums.items()},
+            commit=False,
+        )
         wandb.log({"epoch": epoch, "learning_rate": optimizer.param_groups[0]["lr"]})
 
     metrics = evaluate(model, val_loader, loss_weights, device)
@@ -98,7 +86,7 @@ def train(
         best_mse = metrics["MSE"]
         save_model(model, epoch, exp_dir, is_best=True)
     # save last model
-    save_model(epochs, is_final=True)
+    save_model(model, epoch, exp_dir, is_final=True)
 
 
 def save_model(
@@ -108,7 +96,7 @@ def save_model(
     is_final: bool = False,
     is_best: bool = False,
 ):
-    suffix = "_best" if is_best else f"{epoch}_final" if is_final else f"{epoch}"
+    suffix = "best" if is_best else f"{epoch}_final" if is_final else f"{epoch}"
     checkpoint_path = os.path.join(exp_dir, f"checkpoint_{suffix}.pth")
     torch.save(model.state_dict(), checkpoint_path)
     tqdm.write(f"Epoch {epoch} | Checkpoint saved at {checkpoint_path}")
@@ -163,7 +151,7 @@ def evaluate(model, data_loader, loss_weights, device, model_ckpt_path=None):
 
     metrics = {f"{k}": mse for k, mse in mses.items()}
     metrics["MSE"] = sum([loss_weights[k] * v for k, v in mses.items()])
-    wandb.log({"eval_" + k: v for k, v in metrics.items()}, commit=False)
+    wandb.log({"eval_loss_" + k: v for k, v in metrics.items()}, commit=False)
     tqdm.write(
         "Evaluation losses: \t"
         + "  ".join((f"{k}: {metric:8.3g}" for k, metric in metrics.items()))
@@ -181,17 +169,6 @@ def fix_seeds(seed) -> None:
 
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-
-# def seed_worker(worker_id):
-#     worker_seed = (torch.initial_seed() + worker_id) % 2**32
-#     np.random.seed(worker_seed)
-#     random.seed(worker_seed)
-#
-#
-# def get_generator(seed) -> torch.Generator:
-#     gen = torch.Generator()
-#     return gen.manual_seed(seed)
 
 
 def collate_fn(
@@ -213,6 +190,53 @@ def collate_fn(
         out_batch["metadata"] = [x["metadata"] for x in batch]
 
     return out_batch
+
+
+def extract(
+    model: torch.nn.Module,
+    checkpoint_name: pathlib.Path,
+    experiment_directory: pathlib.Path,
+    dataset: torch.utils.data.Dataset,
+    device: torch.device,
+):
+    checkpoint_path = experiment_directory / checkpoint_name
+
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=8,
+        num_workers=8,
+        pin_memory=True,
+        persistent_workers=False,
+        drop_last=False,
+        shuffle=False,
+        collate_fn=collate_fn,
+    )
+
+    with torch.no_grad():
+        model_dict = torch.load(checkpoint_path, map_location=device)
+        encoder_dict = {
+            k[8:]: v for k, v in model_dict.items() if k.startswith("encoder")
+        }
+        model.load_state_dict(encoder_dict)
+        print(f"Loaded model from checkpoint: {checkpoint_path}")
+
+        model.eval()
+
+        embeddings_path = experiment_directory / "embeddings"
+        embeddings_path.mkdir(exist_ok=True)
+
+        for batch in tqdm(dataloader, desc="Extracting"):
+            image = batch["image"]
+            metadatas = batch["metadata"]
+            image = {k: v.to(device) for k, v in image.items()}
+
+            embeddings = model(image)
+            for batch_index, md in enumerate(metadatas):
+                file_name = md["file_name"]
+                np.savez_compressed(
+                    embeddings_path / (file_name + "_embedding.npz"),
+                    embeddings[batch_index].numpy(force=True).astype(np.float16),
+                )
 
 
 def main() -> None:
@@ -335,8 +359,6 @@ def main() -> None:
         num_workers=num_workers,
         pin_memory=True,
         persistent_workers=False,
-        # worker_init_fn=seed_worker,
-        # generator=get_generator(seed),
         drop_last=True,
         shuffle=True,
         collate_fn=collate_fn,
@@ -348,7 +370,6 @@ def main() -> None:
         num_workers=val_num_workers,
         pin_memory=True,
         persistent_workers=False,
-        # worker_init_fn=seed_worker,
         drop_last=False,
         shuffle=False,
         collate_fn=collate_fn,
@@ -377,56 +398,9 @@ def main() -> None:
         device=device,
     )
 
+    extract(encoder, "checkpoint_best.pth", experiment_directory, train_dataset, device)
+
     wandb.finish()
-
-
-# def extract():
-#     model_ckpt_path = None
-#
-#     dataset = MergedEmbeddingDataset()
-#
-#     data_loader = DataLoader(
-#         dataset,
-#         sampler=DistributedSampler(test_dataset),
-#         batch_size=test_batch_size,
-#         num_workers=test_num_workers,
-#         pin_memory=True,
-#         persistent_workers=False,
-#         drop_last=False,
-#         collate_fn=collate_fn,
-#     )
-#
-#     with torch.no_grad():
-#         model = ...
-#
-#         model_dict = torch.load(model_ckpt_path, map_location=device)
-#         model_name = os.path.basename(model_ckpt_path).split(".")[0]
-#         model.load_state_dict(model_dict, strict=False)
-#
-#         print(f"Loaded model for evaluation")
-#
-#         model.eval()
-#
-#         tag = f"Extracting embeddings from {model_name}"
-#
-#         embeddings_path = pathlib.Path(exp_dir) / "embeddings"
-#
-#         embeddings_path.mkdir(parents=True, exist_ok=True)
-#
-#         for batch_idx, batch in enumerate(tqdm(data_loader, desc=tag)):
-#             image = batch["image"]
-#             metadatas = batch["metadata"]
-#             image = {k: v.to(device) for k, v in image.items()}
-#
-#             embeddings = model(image)
-#             for batch_index, md in enumerate(metadatas):
-#                 file_name = md["file_name"]
-#                 for embedding_index, embedding in enumerate(embeddings):
-#                     np.savez_compressed(
-#                         embeddings_path
-#                         / (file_name + f"_embedding_{embedding_index}.npz"),
-#                         embedding[batch_index].numpy(force=True).astype(np.float16),
-#                     )
 
 
 if __name__ == "__main__":
