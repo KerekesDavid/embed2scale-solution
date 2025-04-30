@@ -217,6 +217,7 @@ def main() -> None:
     val_batch_size = 8
     num_workers = 8
     val_num_workers = 8
+    data_directory = pathlib.Path("/geoinfo_proj/Shared/embed2scale-embeddings")
     experiment_dir_prefix = "experiments/linear_embed_cdfpy"
 
     lr = 1e-4
@@ -258,55 +259,53 @@ def main() -> None:
     train_dataset = MergedEmbeddingDataset(
         datasets=[
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/copernicus-fm/copernicusfm_concat_temporal_raw_4x768_eval.npz",
+                path=data_directory
+                / "copernicus-fm/copernicusfm_concat_temporal_raw_4x768_eval.npz",
                 dataset_key="copernicus",
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/dofa/dofa_temporal_raw_4x1536_eval.npz",
+                path=data_directory / "dofa/dofa_temporal_raw_4x1536_eval.npz",
                 dataset_key="dofa",
             ),
             EmbeddingDataset(
-                root_paths={
-                    "croma": "/home/david/KTH/embed2scale-pangaea/data/croma-eval-embeddings"
-                }
+                root_paths={"croma": data_directory / "croma-eval-embeddings"}
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/prithvi2/prithvi2_1x1536_eval.npz",
+                path=data_directory / "prithvi2/prithvi2_1x1536_eval.npz",
                 dataset_key="prithvi",
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/scalemae/scalemae_temporal_data_eval_4x1536.npz",
+                path=data_directory / "scalemae/scalemae_temporal_data_eval_4x1536.npz",
                 dataset_key="scalemae",
             ),
         ]
     )
-    train_dataset = torch.utils.data.Subset(train_dataset, [i for i in range(64)])
+    # train_dataset = torch.utils.data.Subset(train_dataset, [i for i in range(64)])
     val_dataset = MergedEmbeddingDataset(
         datasets=[
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/copernicus-fm/copernicusfm_concat_temporal_raw_4x768_dev.npz",
+                path=data_directory
+                / "copernicus-fm/copernicusfm_concat_temporal_raw_4x768_dev.npz",
                 dataset_key="copernicus",
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/dofa/dofa_temporal_raw_4x1536_dev.npz",
+                path=data_directory / "dofa/dofa_temporal_raw_4x1536_dev.npz",
                 dataset_key="dofa",
             ),
             EmbeddingDataset(
-                root_paths={
-                    "croma": "/home/david/KTH/embed2scale-pangaea/data/croma-dev-embeddings"
-                }
+                root_paths={"croma": data_directory / "data/croma-dev-embeddings"}
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/prithvi2/prithvi2_1x1536_dev.npz",
+                path=data_directory / "prithvi2/prithvi2_1x1536_dev.npz",
                 dataset_key="prithvi",
             ),
             SingleFileEmbeddingDataset(
-                path="/home/david/KTH/embed2scale-pangaea/data/scalemae/scalemae_temporal_data_dev_4x1536.npz",
+                path=data_directory / "scalemae/scalemae_temporal_data_dev_4x1536.npz",
                 dataset_key="scalemae",
             ),
         ]
     )
-    val_dataset = torch.utils.data.Subset(val_dataset, [i for i in range(64)])
+    # val_dataset = torch.utils.data.Subset(val_dataset, [i for i in range(64)])
     print(f"Length of training dataset: {len(train_dataset)}")
     print(f"Length of validation dataset: {len(val_dataset)}")
 
