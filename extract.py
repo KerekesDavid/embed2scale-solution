@@ -78,9 +78,11 @@ def extract(
 
         model.eval()
 
-        embeddings_dir = experiment_directory / "embeddings"
+        embeddings_dir = experiment_directory / "all_checkpoint_extracts"
         embeddings_dir.mkdir(exist_ok=True)
         embeddings_path = embeddings_dir / pathlib.Path(checkpoint_name).stem
+        embeddings_path.mkdir(exist_ok=True)
+        embeddings_path = embeddings_path / "embeddings"
         embeddings_path.mkdir(exist_ok=True)
 
         for batch in tqdm(dataloader, desc="Extracting"):
