@@ -29,7 +29,7 @@ Download the foundation models under `foundation_embeddings/pretrained_models`:
 ```
 wget https://huggingface.co/wangyi111/Copernicus-FM/resolve/main/CopernicusFM_ViT_base_varlang_e100.pth -P foundation_embeddings/pretrained_models/
 
-wget https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-600M/resolve/main/Prithvi_EO_V2_600M.pt-P foundation_embeddings/pretrained_models/
+wget https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-600M/resolve/main/Prithvi_EO_V2_600M.pt -P foundation_embeddings/pretrained_models/
 
 wget https://github.com/bair-climate-initiative/scale-mae/releases/download/base-800/scalemae-vitlarge-800.pth -P foundation_embeddings/pretrained_models/
 

@@ -30,7 +30,7 @@ if __name__ == "__main__":
     try:
         model = ScaleMAE()
         checkpoint_path = "./pretrained_models/scalemae-vitlarge-800.pth"
-        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         model.load_state_dict(checkpoint, strict=False)
         model.eval()  # Set to evaluation mode
         model.to(device)
