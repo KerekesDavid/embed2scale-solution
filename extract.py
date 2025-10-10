@@ -124,6 +124,7 @@ def main() -> None:
         input_dropout=torch.nn.Dropout(0.1),
         encoder_weights=loss_weights,
     )
+    encoder.to(device)
 
     train_dataset = MergedEmbeddingDataset(
         datasets=[
