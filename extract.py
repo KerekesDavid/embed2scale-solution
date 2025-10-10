@@ -73,8 +73,6 @@ def extract(
         encoder_dict = {
             k[8:]: v for k, v in model_dict.items() if k.startswith("encoder")
         }
-        print(model_dict.keys())
-        print(encoder_dict.keys())
         model.load_state_dict(encoder_dict)
         print(f"Loaded model from checkpoint: {checkpoint_path}")
 
@@ -153,7 +151,6 @@ def main() -> None:
     )
 
     checkpoints = sorted(experiment_directory.glob("*.pth"))
-    print(checkpoints)
 
     for checkpoint_path in checkpoints:
         extract(
