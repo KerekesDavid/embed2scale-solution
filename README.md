@@ -2,6 +2,8 @@
 
 This solution achieved the highest q-mean value of 15.22 on the [evaluation leaderboard](https://eval.ai/web/challenges/challenge-page/2465/leaderboard/6117) of the [Embed2Scale](https://eval.ai/web/challenges/challenge-page/2465/overview) challenge.
 
+We presented our findings as a short [paper](https://github.com/REO-workshop/2025-EurIPS-REO-workshop/blob/main/papers/Fused_Kerekes.pdf) and poster at the [REO workshop](https://sites.google.com/view/reoeurips) at Eurips.
+
 ## Usage
 
 Clone the repo:
