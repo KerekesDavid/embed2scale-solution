@@ -1,13 +1,15 @@
 import numpy as np
 import torch
 from torchvision import transforms
+
 from challenge_dataset import (
-    E2SChallengeDataset,
-    S2L1C_MEAN_SSL4EO,
-    S2L1C_STD_SSL4EO,
-    S1GRD_MEAN_SSL4EO,
-    S1GRD_STD_SSL4EO,
+    S1GRD_MEAN,
+    S1GRD_STD,
+    S2L1C_MEAN,
+    S2L1C_STD,
+    SSL4EODownstreamDataset,
 )
+
 from tqdm import tqdm
 import os
 import sys
@@ -17,14 +19,8 @@ copernicus_fm_repo_path = "./Copernicus-FM/Copernicus-FM"
 
 # --- Add Copernicus-FM src to Python path ---
 sys.path.append(copernicus_fm_repo_path)
-try:
-    from src.model_vit import vit_base_patch16
-except ImportError as e:
-    print("ERROR: Could not import vit_base_patch16.")
-    print(f"Attempted to add '{copernicus_fm_repo_path}' to sys.path.")
-    print("Ensure the path is correct and contains the 'src' directory.")
-    print(f"Original Error: {e}")
-    exit()
+sys.path.append(copernicus_fm_repo_path + "/src")
+from src.model_vit import vit_base_patch16
 
 
 if __name__ == "__main__":
@@ -124,8 +120,8 @@ if __name__ == "__main__":
 
     # --- Data Preparation ---
     # Normalization uses combined SSL4EO stats, applied AFTER dataset concatenates
-    mean_combined = S1GRD_MEAN_SSL4EO + S2L1C_MEAN_SSL4EO
-    std_combined = S1GRD_STD_SSL4EO + S2L1C_STD_SSL4EO
+    mean_combined = S1GRD_MEAN + S2L1C_MEAN
+    std_combined = S1GRD_STD + S2L1C_STD
     data_transform = transforms.Compose(
         [transforms.Normalize(mean=mean_combined, std=std_combined)]
     )
@@ -138,7 +134,7 @@ if __name__ == "__main__":
     print("Initializing dataset...")
     try:
         # Load S1+S2 CONCATENATED
-        dataset_e2s = E2SChallengeDataset(
+        dataset_e2s = SSL4EODownstreamDataset(
             path_to_data,
             modalities=MODALITIES_TO_LOAD,
             dataset_name="bands",

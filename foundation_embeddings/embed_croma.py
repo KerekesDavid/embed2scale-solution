@@ -11,7 +11,7 @@ from challenge_dataset import (
     S1GRD_STD,
     S2L2A_MEAN,
     S2L2A_STD,
-    E2SChallengeDataset,
+    SSL4EODownstreamDataset,
     collate_fn,
 )
 from use_croma import PretrainedCROMA
@@ -35,7 +35,7 @@ def main():
 
     embeddings_path.mkdir(exist_ok=True, parents=True)
 
-    dataset_e2s = E2SChallengeDataset(
+    dataset_e2s = SSL4EODownstreamDataset(
         data_path,
         modalities=modalities,
         dataset_name="bands",
@@ -60,7 +60,7 @@ def main():
     ).to(device)
 
     dataloader = torch.utils.data.DataLoader(
-        dataset_e2s, batch_size=8, num_workers=16, collate_fn=collate_fn
+        dataset_e2s, batch_size=4, num_workers=16, collate_fn=collate_fn
     )
 
     with torch.no_grad():

@@ -8,11 +8,11 @@ from torchvision import transforms
 from tqdm import tqdm
 
 from challenge_dataset import (
-    S1GRD_MEAN_SSL4EO,
-    S1GRD_STD_SSL4EO,
-    S2L1C_MEAN_SSL4EO,
-    S2L1C_STD_SSL4EO,
-    E2SChallengeDataset,
+    S1GRD_MEAN,
+    S1GRD_STD,
+    S2L1C_MEAN,
+    S2L1C_STD,
+    SSL4EODownstreamDataset,
 )
 
 if __name__ == "__main__":
@@ -71,10 +71,10 @@ if __name__ == "__main__":
     print(f"Raw temporal embeddings will be saved to: {output_file}")
 
     # --- Data Preparation ---
-    mean_s1 = S1GRD_MEAN_SSL4EO
-    std_s1 = S1GRD_STD_SSL4EO
-    mean_s2l1c = S2L1C_MEAN_SSL4EO
-    std_s2l1c = S2L1C_STD_SSL4EO
+    mean_s1 = S1GRD_MEAN
+    std_s1 = S1GRD_STD
+    mean_s2l1c = S2L1C_MEAN
+    std_s2l1c = S2L1C_STD
     data_transform = transforms.Compose(
         [transforms.Normalize(mean=mean_s1 + mean_s2l1c, std=std_s1 + std_s2l1c)]
     )
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     print("Initializing dataset...")
     try:
         # Load S1 and S2 separately
-        dataset_e2s = E2SChallengeDataset(
+        dataset_e2s = SSL4EODownstreamDataset(
             path_to_data,
             modalities=MODALITIES_TO_PROCESS,
             dataset_name="bands",
