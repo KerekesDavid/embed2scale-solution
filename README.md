@@ -4,63 +4,14 @@ This solution achieved the highest q-mean value of 15.22 on the [evaluation lead
 
 We presented our findings as a short [paper](https://github.com/REO-workshop/2025-EurIPS-REO-workshop/blob/main/papers/Fused_Kerekes.pdf) and poster at the [REO workshop](https://sites.google.com/view/reoeurips) at Eurips.
 
+On this branch you find a Jupyter [notebook](igarss_tutorial.ipynb) to recreate our solution as part of the [2026 IGARSS tutorial](https://2026.ieeeigarss.org/tutorials.php#tut5).
+
 ## Usage
 
-Clone the repo:
+Clone the branch into the `/code` directory of the tutorial repo:
 
 ```
-git clone git@github.com:KerekesDavid/embed2scale-solution.git
-cd embed2scale-solution
+git clone -b igarss git@github.com:KerekesDavid/embed2scale-solution.git code/embed2scale-solution
 ```
 
-Clone Copernicus-FM, a dependency for generating the foundation model embeddings:
-
-```
-git clone https://github.com/zhu-xlab/Copernicus-FM.git ./foundation_embeddings/Copernicus-FM
-```
-
-Install dependencies:
-
-```
-mamba env create --file environment.yaml
-mamba activate embed2scale-solution
-```
-
-Download the foundation models under `foundation_embeddings/pretrained_models`:
-
-```
-wget https://huggingface.co/wangyi111/Copernicus-FM/resolve/main/CopernicusFM_ViT_base_varlang_e100.pth -P foundation_embeddings/pretrained_models/
-
-wget https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-600M/resolve/main/Prithvi_EO_V2_600M.pt -P foundation_embeddings/pretrained_models/
-
-wget https://github.com/bair-climate-initiative/scale-mae/releases/download/base-800/scalemae-vitlarge-800.pth -P foundation_embeddings/pretrained_models/
-
-wget https://huggingface.co/antofuller/CROMA/resolve/main/CROMA_large.pt -P foundation_embeddings/pretrained_models/
-```
-
-Download the Embed2Scale dataset to `./data`, or symlink it from elsewhere if you already have it:
-
-```
-git lfs install
-git clone https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream ./data/SSL4EO-S12-downstream
-```
-
-Run the foundation feature extraction:
-
-```
-cd foundation_embeddings
-bash ./generate_foundation_embeddings.sh
-```
-
-Train the autoencoder to generate the evaluation embeddings:
-
-```
-python3 train_encoder.py
-```
-
-Point `embeddings_to_csv.py` to the newly generated experiment folder to generate a submission file:
-
-```
-python3 embeddings_to_csv.py experiments/<experiment folder> submission.csv
-```
-
+Open the [igarss_tutorial.ipynb](igarss_tutorial.ipynb) notebook in your colab/jupyter lab.
